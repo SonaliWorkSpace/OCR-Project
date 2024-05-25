@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Project</title>
+    <style>
+
+
+        /* Basic styling for centering content */
+
+
+        body {
+            display: flex;
+            background-color: rgb(0, 0, 0);
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+        }
+        h2 {
+            color: rgb(243, 134, 152);
+        }
+        .container {
+            text-align: center;
+            width: 80%;
+            max-width: 800px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #000000;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        input[type="file"] {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            border-radius: 10%;
+            font-size: 16px;
+            cursor: pointer;
+            color: black;
+            background-color: rgb(178, 89, 237);
+            border: none;
+            outline: none;
+        }
+        button:hover{
+            border: 3px solid white;
+            color: rgb(8, 80, 8);
+            font-size: large;
+            background-color: rgb(241, 241, 68);
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            background-color: rgb(254, 201, 210);
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .extracted-content {
+            text-align: left;
+            margin-top: 20px;
+            display: none;
+        }
+        .extracted-content p {
+            margin-bottom: 10px;
+        }
+        .extracted-content img {
+            max-width: 100%;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+
+
+    <link rel="icon" href="data:;base64,iVBORw0KGgo="> <!-- Suppress favicon request -->
+
+
+</head>
+<body>
+    <div class="container">
+        <h2>Image to Text Extraction</h2>
+        <img id="imagePreview" src="" alt="Uploaded Image" style="color: white;">
+        <br>
+        <input type="file" id="imageInput">
+        <br>
+        <button onclick="extractText()">Extract Text</button>
+        <br>
+        <textarea id="textOutput" placeholder="Extracted text may take some time to appear, Click once and please wait...
+        *the rapidapi can only have access to 20 api request !*" readonly></textarea>
+
+        <!-- Container for extracted content -->
+        <div class="extracted-content" id="extractedContent"></div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+
+    <script>
+        async function extractText() {
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file!');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const url = 'https://cloudlabs-image-ocr.p.rapidapi.com/ocr/recognizeFile';
+            const options = {
+                method: 'POST',
+                url: url,
+                headers: {
+                    'X-RapidAPI-Key': '17338b7442mshbaeb1c71c1886cbp132ce4jsnb07e0a80a8ea',
+                    'X-RapidAPI-Host': 'cloudlabs-image-ocr.p.rapidapi.com',
+                },
+                data: formData
+            };
+
+            try {
+                const response = await axios.request(options);
+                const result = response.data;
+                console.log(result);
+
+                if (response.status === 200 && result.status === 'success') {
+                    const extractedText = result.result;
+                    document.getElementById('textOutput').value = extractedText;
+                    displayExtractedContent(extractedText);
+                } else {
+                    document.getElementById('textOutput').value = 'No text found';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('textOutput').value = 'Error processing image.';
+            }
+        }
+
+        function displayExtractedContent(text) {
+            const extractedContentDiv = document.getElementById('extractedContent');
+            extractedContentDiv.innerHTML = ''; 
+
+            // Display the extracted content
+            const p = document.createElement('p');
+            p.textContent = text;
+            extractedContentDiv.appendChild(p);
+
+            // Display the extracted content
+            extractedContentDiv.style.display = 'block';
+        }
+
+        // Display image preview
+        document.getElementById('imageInput').addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('imagePreview').src = '';
+            }
+        });
+    </script>
+
+
+</body>
+</html>
